@@ -18,12 +18,12 @@ my $proxy = RTSP::Proxy->new({
     transport_handler => {
         decode_rtp => 1,
         output_raw => 1,
-        log_level => 4,
+        log_level => 2,
     },
     transport_handler_class => 'RTP',
     port   => 554,
     listen => 5,
-    log_level => 4,
+    log_level => 3,
 });
 
 $proxy->run;

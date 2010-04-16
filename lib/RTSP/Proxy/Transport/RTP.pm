@@ -7,6 +7,7 @@ extends 'Net::Server::Single';
 use RTSP::Proxy::StreamBuffer;
 use IO::Socket::INET;
 use Carp qw/croak/;
+use Net::RTP::Packet;
 
 has stream_buffer => (
     is => 'rw',
@@ -147,9 +148,9 @@ sub handle_packet {
 
 sub decode_packet {
     my ($self, $p) = @_;
-    
+
     my $rtp = new Net::RTP::Packet($$p);
-    print STDOUT $rtp->payload if $rtp && $self->{server}{output_raw};
+    print STDERR $rtp->payload if $rtp && $self->{server}{output_raw};
 }
 
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
