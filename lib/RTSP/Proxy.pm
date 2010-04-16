@@ -310,7 +310,7 @@ sub proxy_request {
             $self->rewrite_transport_response($session, \$val)
                 if lc $header_name eq 'transport';
             
-            $res .= "passing header back: $header_name\t= $val\r\n";
+            $res .= "$header_name: $val\r\n";
         }
     }
     
