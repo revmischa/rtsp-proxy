@@ -8,6 +8,8 @@ WriteMakefile(
         'RTSP::Client' => '0.03',
         'Net::Server::PreFork' => undef,
         'Moose' => undef,
+        'Net::RTP::Packet' => undef,
+        'IO::Socket::INET' => undef,
     },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/RTSP/Proxy.pm', # retrieve abstract from module

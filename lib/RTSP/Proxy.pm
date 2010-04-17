@@ -65,8 +65,9 @@ sub process_request {
     my $uri;
     my $proto;
     my $headers = {};
+    my $sock = $self->{server}->{client} or die "Could not find client socket";
     
-    READ: while (my $line = <STDIN>) {
+    READ: while (my $line = <$sock>) {
         $self->log(5, "got line: $line");
         
         unless ($method) {
@@ -392,6 +393,7 @@ sub default_values {
         proto        => 'tcp',
         listen       => 3,
         port         => 554,
+        no_client_stdout => 1,
     }
 }
 

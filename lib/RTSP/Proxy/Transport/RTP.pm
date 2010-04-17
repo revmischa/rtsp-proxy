@@ -57,6 +57,7 @@ sub default_values {
         listen       => 1,
         port         => 6970,
         udp_recv_len => 4096,
+        no_client_stdout => 1,
     }
 }
 
@@ -150,7 +151,16 @@ sub decode_packet {
     my ($self, $p) = @_;
 
     my $rtp = new Net::RTP::Packet($$p);
-    print STDERR $rtp->payload if $rtp && $self->{server}{output_raw};
+    return unless $rtp && $self->{server}{output_raw};
+    
+    $self->{buf} ||= '';
+    $self->{buf} .= $rtp->payload if $rtp->payload_size;
+        
+    if ($rtp->marker) {
+        local $|=1;
+        print $self->{buf};
+        $self->{buf} = '';
+    }
 }
 
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
