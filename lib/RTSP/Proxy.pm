@@ -74,7 +74,7 @@ sub process_request {
             # first line should be method
             ($method, $uri, $proto) = $line =~ m!(\w+)\s+(\S+)(?:\s+(\S+))?\r\n!ism;
             
-            $self->log(4, "received: method: $method, uri: $uri, protocol: $proto");
+            $self->log(4, "received: $method $uri $proto");
             
             unless ($method && $uri && $proto =~ m!RTSP/1.\d!i) {
                 $self->log(1, "Invalid request: $line");
@@ -228,7 +228,7 @@ sub rewrite_transport {
 sub proxy_request {
     my ($self, $method, $uri, $session, $headers) = @_;
     
-    $self->log(2, "\n-------------------------\nproxying $method / $uri to " . $session->rtsp_client->address);
+    $self->log(2, "\n-------------------------\nproxying $method $uri to " . $session->rtsp_client->address);
     
     my $client = $session->rtsp_client;
     
@@ -239,12 +239,12 @@ sub proxy_request {
             return $self->return_status(404, "Resource not found");
         }
     }
-    
+
     # pass through some headers
     foreach my $header_name (qw/
         Accept Bandwidth Accept-Language ClientChallenge PlayerStarttime RegionData
         GUID ClientID Transport x-retransmit x-dynamic-rate x-transport-options Session
-        Range/) {
+        Range User-Agent/) {
             
         my $header_value = $headers->{$header_name};
         next unless defined $header_value && @$header_value;
@@ -263,7 +263,7 @@ sub proxy_request {
             # }
             # 
             $client->add_req_header($header_name, $h);
-            $self->log(3, "passing through header $header_name\t=$h");
+            $self->log(3, "passing through header $header_name = $h");
         }
     }
     
@@ -271,16 +271,16 @@ sub proxy_request {
     my $ok;
     my $body;
     if ($method eq 'SETUP') {
-        $ok = $client->setup;
+        $ok = $client->setup($uri);
     } elsif ($method eq 'DESCRIBE') {
         # proxy body response
-        $body = $client->describe;
+        $body = $client->describe($uri);
     } elsif ($method eq 'OPTIONS') {
-        $ok = $client->options;
+        $ok = $client->options($uri);
     } elsif ($method eq 'TEARDOWN') {
-        $ok = $client->teardown;
+        $ok = $client->teardown($uri);
     } else {
-        $ok = $client->request($method);
+        $ok = $client->request($method, $uri);
     }
     
     my $status_message = $client->status_message;
@@ -297,7 +297,7 @@ sub proxy_request {
 
     # return status
     $res .= "RTSP/1.0 $status_code $status_message\r\n";
-    
+
     # pass some headers back    
     foreach my $header_name (qw/
         Content-Type Content-Base Public Allow Transport Session
@@ -315,7 +315,7 @@ sub proxy_request {
         }
     }
     
-    # respond with correct CSeq                                                                                                                                                     
+    # respond with correct CSeq
     my $cseq;
     $cseq = @{$headers->{CSeq}} if $headers->{CSeq};
     $cseq = @{$headers->{Cseq}} if $headers->{Cseq};
@@ -411,7 +411,7 @@ sub options {
         or croak "No rtsp_client definition specified";
     
     $template->{rtsp_client} = \ $prop->{rtsp_client};
-    
+
     
     ### transport class
     my $tc = $prop->{'transport_handler_class'} || 'RTP';
