@@ -5,7 +5,7 @@ our $VERSION = '0.02';
 use Moose;
 
 use Carp qw/croak/;
-use RTSP::Client '0.03';
+use RTSP::Client 0.03;
 
 has id => (
     is => 'rw',
